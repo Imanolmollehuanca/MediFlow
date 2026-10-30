@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "pryfGwarJyE=",
+  "success": true,
+  "projectFilePath": "D:\\1.Desarrollo de Aplicaciones Empresariales Avanzado\\MediFlow\\MediFlow\\MediFlow.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\LENOVO\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.11\\microsoft.aspnetcore.openapi.10.0.11.nupkg.sha512",
+    "C:\\Users\\LENOVO\\.nuget\\packages\\microsoft.openapi\\2.7.5\\microsoft.openapi.2.7.5.nupkg.sha512"
+  ],
+  "logs": []
+}
