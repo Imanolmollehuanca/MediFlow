@@ -1,40 +1,48 @@
-using MediFlow.Infrastructure.Context;
-using Microsoft.EntityFrameworkCore;
 using MediFlow.Application;
 using MediFlow.Infrastructure.Configuration;
+using MediFlow.Infrastructure.Context;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Registrar controladores
 builder.Services.AddControllers();
-// Registrar repositorios de Infrastructure
-builder.Services.AddInfrastructureServices();
 
-// Registrar Commands y Queries de MediatR
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(
-        typeof(ApplicationAssemblyMarker).Assembly));
-
-// Configurar Entity Framework Core con PostgreSQL
+// Configurar PostgreSQL con Entity Framework Core
 builder.Services.AddDbContext<MediFlowContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
 
-// Configurar Swagger / OpenAPI
+// Registrar repositorios de Infrastructure
+builder.Services.AddInfrastructureServices();
+
+// Registrar Commands y Queries de MediatR
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(
+        typeof(ApplicationAssemblyMarker).Assembly
+    )
+);
+
+// Configurar OpenAPI y Swagger
 builder.Services.AddOpenApi();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configuración del entorno de desarrollo
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    app.UseSwagger();
+
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint(
             "/openapi/v1.json",
-            "MediFlow API v1");
+            "MediFlow API v1"
+        );
     });
 }
 
