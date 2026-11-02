@@ -1,4 +1,6 @@
 using MediFlow.Infrastructure.Context;
+using MediFlow.Application.UseCases.Appointments;
+using MediFlow.Application.UseCases.Schedules;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +14,8 @@ builder.Services.AddDbContext<MediFlowContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
+builder.Services.AddScoped<AppointmentUseCase>();
+builder.Services.AddScoped<ScheduleUseCase>();
 
 // Configurar Swagger / OpenAPI
 builder.Services.AddOpenApi();

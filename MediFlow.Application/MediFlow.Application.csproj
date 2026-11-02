@@ -2,6 +2,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\MediFlow.Domain\MediFlow.Domain.csproj" />
+      <ProjectReference Include="..\MediFlow.Infrastructure\MediFlow.Infrastructure.csproj" />
     </ItemGroup>
 
     <PropertyGroup>
