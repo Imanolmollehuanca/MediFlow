@@ -1,10 +1,18 @@
 using MediFlow.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
+using MediFlow.Application;
+using MediFlow.Infrastructure.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Registrar controladores
 builder.Services.AddControllers();
+// Registrar repositorios de Infrastructure
+builder.Services.AddInfrastructureServices();
+
+// Registrar Commands y Queries de MediatR
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(
+        typeof(ApplicationAssemblyMarker).Assembly));
 
 // Configurar Entity Framework Core con PostgreSQL
 builder.Services.AddDbContext<MediFlowContext>(options =>
@@ -22,6 +30,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint(
+            "/openapi/v1.json",
+            "MediFlow API v1");
+    });
 }
 
 app.UseHttpsRedirection();
