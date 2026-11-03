@@ -64,6 +64,47 @@ namespace MediFlow.Infrastructure.Migrations
                     b.ToTable("Appointments");
                 });
 
+            modelBuilder.Entity("MediFlow.Domain.Entities.Diagnosis", b =>
+                {
+                    b.Property<int>("DiagnosisId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DiagnosisId"));
+
+                    b.Property<int>("AppointmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("DiagnosisDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DoctorId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ICDCode")
+                        .HasColumnType("text");
+
+                    b.Property<int>("MedicalRecordId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Observations")
+                        .HasColumnType("text");
+
+                    b.HasKey("DiagnosisId");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("MedicalRecordId");
+
+                    b.ToTable("Diagnoses");
+                });
+
             modelBuilder.Entity("MediFlow.Domain.Entities.Doctor", b =>
                 {
                     b.Property<int>("DoctorId")
@@ -106,6 +147,190 @@ namespace MediFlow.Infrastructure.Migrations
                     b.HasIndex("SpecialtyId");
 
                     b.ToTable("Doctors");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.DoctorRoom", b =>
+                {
+                    b.Property<int>("DoctorRoomId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DoctorRoomId"));
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DoctorId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("DoctorRoomId");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("RoomId");
+
+                    b.ToTable("DoctorRooms");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.Invoice", b =>
+                {
+                    b.Property<int>("InvoiceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("InvoiceId"));
+
+                    b.Property<string>("CustomerDocument")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CustomerName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("InvoiceNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("InvoiceType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("IssuedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PaymentId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.HasKey("InvoiceId");
+
+                    b.HasIndex("InvoiceNumber")
+                        .IsUnique();
+
+                    b.HasIndex("PaymentId")
+                        .IsUnique();
+
+                    b.ToTable("Invoices");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.MedicalRecord", b =>
+                {
+                    b.Property<int>("MedicalRecordId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MedicalRecordId"));
+
+                    b.Property<string>("Allergies")
+                        .HasColumnType("text");
+
+                    b.Property<string>("BloodType")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("MedicalHistory")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Observations")
+                        .HasColumnType("text");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("MedicalRecordId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("MedicalRecords");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.Medication", b =>
+                {
+                    b.Property<int>("MedicationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MedicationId"));
+
+                    b.Property<string>("Concentration")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Presentation")
+                        .HasColumnType("text");
+
+                    b.HasKey("MedicationId");
+
+                    b.ToTable("Medications");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.Notification", b =>
+                {
+                    b.Property<int>("NotificationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("NotificationId"));
+
+                    b.Property<int?>("AppointmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("NotificationId");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("MediFlow.Domain.Entities.Patient", b =>
@@ -160,6 +385,109 @@ namespace MediFlow.Infrastructure.Migrations
                     b.ToTable("Patients");
                 });
 
+            modelBuilder.Entity("MediFlow.Domain.Entities.Payment", b =>
+                {
+                    b.Property<int>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PaymentId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<int>("AppointmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TransactionReference")
+                        .HasColumnType("text");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.ToTable("Payments");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.Prescription", b =>
+                {
+                    b.Property<int>("PrescriptionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PrescriptionId"));
+
+                    b.Property<int>("DiagnosisId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("GeneralInstructions")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("IssuedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("PrescriptionId");
+
+                    b.HasIndex("DiagnosisId");
+
+                    b.ToTable("Prescriptions");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.PrescriptionDetail", b =>
+                {
+                    b.Property<int>("PrescriptionDetailId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("PrescriptionDetailId"));
+
+                    b.Property<string>("Dosage")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("DurationDays")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Frequency")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Instructions")
+                        .HasColumnType("text");
+
+                    b.Property<int>("MedicationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PrescriptionId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.HasKey("PrescriptionDetailId");
+
+                    b.HasIndex("MedicationId");
+
+                    b.HasIndex("PrescriptionId");
+
+                    b.ToTable("PrescriptionDetails");
+                });
+
             modelBuilder.Entity("MediFlow.Domain.Entities.Role", b =>
                 {
                     b.Property<int>("RoleId")
@@ -178,6 +506,32 @@ namespace MediFlow.Infrastructure.Migrations
                     b.HasKey("RoleId");
 
                     b.ToTable("Roles");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.Room", b =>
+                {
+                    b.Property<int>("RoomId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("RoomId"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Floor")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("RoomNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("RoomId");
+
+                    b.ToTable("Rooms");
                 });
 
             modelBuilder.Entity("MediFlow.Domain.Entities.Schedule", b =>
@@ -304,6 +658,33 @@ namespace MediFlow.Infrastructure.Migrations
                     b.Navigation("Patient");
                 });
 
+            modelBuilder.Entity("MediFlow.Domain.Entities.Diagnosis", b =>
+                {
+                    b.HasOne("MediFlow.Domain.Entities.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MediFlow.Domain.Entities.Doctor", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MediFlow.Domain.Entities.MedicalRecord", "MedicalRecord")
+                        .WithMany("Diagnoses")
+                        .HasForeignKey("MedicalRecordId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("MedicalRecord");
+                });
+
             modelBuilder.Entity("MediFlow.Domain.Entities.Doctor", b =>
                 {
                     b.HasOne("MediFlow.Domain.Entities.Specialty", "Specialty")
@@ -313,6 +694,106 @@ namespace MediFlow.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Specialty");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.DoctorRoom", b =>
+                {
+                    b.HasOne("MediFlow.Domain.Entities.Doctor", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MediFlow.Domain.Entities.Room", "Room")
+                        .WithMany("DoctorRooms")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Room");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.Invoice", b =>
+                {
+                    b.HasOne("MediFlow.Domain.Entities.Payment", "Payment")
+                        .WithOne("Invoice")
+                        .HasForeignKey("MediFlow.Domain.Entities.Invoice", "PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Payment");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.MedicalRecord", b =>
+                {
+                    b.HasOne("MediFlow.Domain.Entities.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.Notification", b =>
+                {
+                    b.HasOne("MediFlow.Domain.Entities.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("MediFlow.Domain.Entities.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.Payment", b =>
+                {
+                    b.HasOne("MediFlow.Domain.Entities.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.Prescription", b =>
+                {
+                    b.HasOne("MediFlow.Domain.Entities.Diagnosis", "Diagnosis")
+                        .WithMany("Prescriptions")
+                        .HasForeignKey("DiagnosisId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Diagnosis");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.PrescriptionDetail", b =>
+                {
+                    b.HasOne("MediFlow.Domain.Entities.Medication", "Medication")
+                        .WithMany("PrescriptionDetails")
+                        .HasForeignKey("MedicationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MediFlow.Domain.Entities.Prescription", "Prescription")
+                        .WithMany("Details")
+                        .HasForeignKey("PrescriptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Medication");
+
+                    b.Navigation("Prescription");
                 });
 
             modelBuilder.Entity("MediFlow.Domain.Entities.Schedule", b =>
@@ -345,6 +826,11 @@ namespace MediFlow.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("MediFlow.Domain.Entities.Diagnosis", b =>
+                {
+                    b.Navigation("Prescriptions");
+                });
+
             modelBuilder.Entity("MediFlow.Domain.Entities.Doctor", b =>
                 {
                     b.Navigation("Appointments");
@@ -352,14 +838,39 @@ namespace MediFlow.Infrastructure.Migrations
                     b.Navigation("Schedules");
                 });
 
+            modelBuilder.Entity("MediFlow.Domain.Entities.MedicalRecord", b =>
+                {
+                    b.Navigation("Diagnoses");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.Medication", b =>
+                {
+                    b.Navigation("PrescriptionDetails");
+                });
+
             modelBuilder.Entity("MediFlow.Domain.Entities.Patient", b =>
                 {
                     b.Navigation("Appointments");
                 });
 
+            modelBuilder.Entity("MediFlow.Domain.Entities.Payment", b =>
+                {
+                    b.Navigation("Invoice");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.Prescription", b =>
+                {
+                    b.Navigation("Details");
+                });
+
             modelBuilder.Entity("MediFlow.Domain.Entities.Role", b =>
                 {
                     b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("MediFlow.Domain.Entities.Room", b =>
+                {
+                    b.Navigation("DoctorRooms");
                 });
 
             modelBuilder.Entity("MediFlow.Domain.Entities.Specialty", b =>
