@@ -1,20 +1,11 @@
 using MediatR;
+using MediFlow.Application.Dtos;
 using MediFlow.Domain.Entities;
 using MediFlow.Domain.Repositories;
 
 namespace MediFlow.Application.UseCases.Patients.Commands;
 
-public record CreatePatientCommand(
-    string DocumentType,
-    string DocumentNumber,
-    string FirstName,
-    string LastName,
-    DateOnly BirthDate,
-    string Gender,
-    string Phone,
-    string? Email,
-    string? Address
-) : IRequest<int>;
+public record CreatePatientCommand(CreatePatientDto Dto) : IRequest<int>;
 
 internal sealed class CreatePatientCommandHandler
     : IRequestHandler<CreatePatientCommand, int>
@@ -31,17 +22,19 @@ internal sealed class CreatePatientCommandHandler
         CreatePatientCommand request,
         CancellationToken cancellationToken)
     {
+        var dto = request.Dto;
+
         var patient = new Patient
         {
-            DocumentType = request.DocumentType,
-            DocumentNumber = request.DocumentNumber,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            BirthDate = request.BirthDate,
-            Gender = request.Gender,
-            Phone = request.Phone,
-            Email = request.Email,
-            Address = request.Address,
+            DocumentType = dto.DocumentType,
+            DocumentNumber = dto.DocumentNumber,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            BirthDate = dto.BirthDate,
+            Gender = dto.Gender,
+            Phone = dto.Phone,
+            Email = dto.Email,
+            Address = dto.Address,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };

@@ -25,19 +25,6 @@ internal sealed class GetPatientsQueryHandler
     {
         var patients = await _repository.GetAllAsync();
 
-        return patients.Select(patient => new PatientDto(
-            patient.PatientId,
-            patient.DocumentType,
-            patient.DocumentNumber,
-            patient.FirstName,
-            patient.LastName,
-            patient.BirthDate,
-            patient.Gender,
-            patient.Phone,
-            patient.Email,
-            patient.Address,
-            patient.IsActive,
-            patient.CreatedAt
-        ));
+        return patients.Select(patient => new PatientDto(patient));
     }
 }
