@@ -1,4 +1,3 @@
-
 using MediatR;
 using MediFlow.Application.Dtos;
 using MediFlow.Application.UseCases.Doctors.Commands;
@@ -39,19 +38,12 @@ public class DoctorsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateDoctorDto dto)
     {
-        if (!IsValid(dto.FirstName, dto.LastName,
-                     dto.LicenseNumber, dto.Phone, dto.Email))
-        {
-            return BadRequest("Todos los datos del médico son obligatorios.");
-        }
-
-        var command = new CreateDoctorCommand(dto.SpecialtyId, dto.FirstName, dto.LastName, dto.LicenseNumber, dto.Phone, dto.Email);
-
         try
         {
-            var doctorId = await _mediator.Send(command);
+            var doctorId = await _mediator.Send(new CreateDoctorCommand(dto));
 
-            return CreatedAtAction(nameof(GetById),
+            return CreatedAtAction(
+                nameof(GetById),
                 new { id = doctorId },
                 new { DoctorId = doctorId });
         }
@@ -62,20 +54,11 @@ public class DoctorsController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(
-        int id,
-        [FromBody] UpdateDoctorDto dto)
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateDoctorDto dto)
     {
-        if (!IsValid(dto.FirstName, dto.LastName, dto.LicenseNumber, dto.Phone, dto.Email))
-        {
-            return BadRequest("Todos los datos del médico son obligatorios.");
-        }
-
-        var command = new UpdateDoctorCommand(id, dto.SpecialtyId, dto.FirstName, dto.LastName, dto.LicenseNumber, dto.Phone, dto.Email);
-
         try
         {
-            var updated = await _mediator.Send(command);
+            var updated = await _mediator.Send(new UpdateDoctorCommand(id, dto));
 
             if (!updated)
                 return NotFound();
@@ -95,14 +78,7 @@ public class DoctorsController : ControllerBase
 
         if (!deleted)
             return NotFound();
+
         return NoContent();
-    }
-    private static bool IsValid(string firstName, string lastName, string licenseNumber, string phone, string email)
-    {
-        return !string.IsNullOrWhiteSpace(firstName)
-            && !string.IsNullOrWhiteSpace(lastName)
-            && !string.IsNullOrWhiteSpace(licenseNumber)
-            && !string.IsNullOrWhiteSpace(phone)
-            && !string.IsNullOrWhiteSpace(email);
     }
 }

@@ -18,12 +18,6 @@ internal sealed class GetSpecialtiesQueryHandler : IRequestHandler<GetSpecialtie
         CancellationToken cancellationToken)
     {
         var specialties = await _repository.GetAllAsync();
-        return specialties.Select(s => new SpecialtyDto(
-            s.SpecialtyId,
-            s.Name,
-            s.Description,
-            s.IsActive,
-            s.CreatedAt
-        )).ToList();
+        return specialties.Select(s => new SpecialtyDto(s)).ToList();
     }
 }

@@ -27,8 +27,6 @@ internal sealed class GetDoctorByIdQueryHandler : IRequestHandler<GetDoctorByIdQ
         if (doctor is null)
             return null;
 
-        return new DoctorDto(doctor.DoctorId, doctor.SpecialtyId, doctor.FirstName, doctor.LastName,
-            doctor.LicenseNumber, doctor.Phone, doctor.Email, doctor.IsActive, doctor.CreatedAt
-        );
+        return new DoctorDto(doctor);
     }
 }

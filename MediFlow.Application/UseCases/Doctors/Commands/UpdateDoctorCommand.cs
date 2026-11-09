@@ -1,10 +1,11 @@
 using MediatR;
+using MediFlow.Application.Dtos;
 using MediFlow.Domain.Entities;
 using MediFlow.Domain.Repositories;
 
 namespace MediFlow.Application.UseCases.Doctors.Commands;
 
-public record UpdateDoctorCommand(int DoctorId, int SpecialtyId, string FirstName, string LastName, string LicenseNumber, string Phone, string Email ) : IRequest<bool>;
+public record UpdateDoctorCommand(int DoctorId, UpdateDoctorDto Dto) : IRequest<bool>;
 
 internal sealed class UpdateDoctorCommandHandler
     : IRequestHandler<UpdateDoctorCommand, bool>
@@ -24,11 +25,13 @@ internal sealed class UpdateDoctorCommandHandler
         UpdateDoctorCommand request,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(request.FirstName) ||
-            string.IsNullOrWhiteSpace(request.LastName) ||
-            string.IsNullOrWhiteSpace(request.LicenseNumber) ||
-            string.IsNullOrWhiteSpace(request.Phone) ||
-            string.IsNullOrWhiteSpace(request.Email))
+        var dto = request.Dto;
+
+        if (string.IsNullOrWhiteSpace(dto.FirstName) ||
+            string.IsNullOrWhiteSpace(dto.LastName) ||
+            string.IsNullOrWhiteSpace(dto.LicenseNumber) ||
+            string.IsNullOrWhiteSpace(dto.Phone) ||
+            string.IsNullOrWhiteSpace(dto.Email))
         {
             throw new ArgumentException("Todos los datos del médico son obligatorios.");
         }
@@ -38,19 +41,22 @@ internal sealed class UpdateDoctorCommandHandler
         if (doctor is null || !doctor.IsActive)
             return false;
 
-        var specialty = await _specialtyRepository.GetByIdAsync(request.SpecialtyId);
+        var specialty = await _specialtyRepository.GetByIdAsync(dto.SpecialtyId);
+
         if (specialty is null || !specialty.IsActive)
         {
             throw new ArgumentException("La especialidad indicada no existe o está inactiva.");
         }
-        
-        doctor.SpecialtyId = request.SpecialtyId;
-        doctor.FirstName = request.FirstName.Trim();
-        doctor.LastName = request.LastName.Trim();
-        doctor.LicenseNumber = request.LicenseNumber.Trim();
-        doctor.Phone = request.Phone.Trim();
-        doctor.Email = request.Email.Trim();
+
+        doctor.SpecialtyId = dto.SpecialtyId;
+        doctor.FirstName = dto.FirstName.Trim();
+        doctor.LastName = dto.LastName.Trim();
+        doctor.LicenseNumber = dto.LicenseNumber.Trim();
+        doctor.Phone = dto.Phone.Trim();
+        doctor.Email = dto.Email.Trim();
+
         await _doctorRepository.UpdateAsync(doctor);
+
         return true;
     }
 }
