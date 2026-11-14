@@ -1,6 +1,6 @@
 using MediatR;
 using MediFlow.Domain.Entities;
-using MediFlow.Domain.Repositories;
+using MediFlow.Domain.Port.Repositories;
 
 namespace MediFlow.Application.UseCases.Diagnoses.Commands;
 

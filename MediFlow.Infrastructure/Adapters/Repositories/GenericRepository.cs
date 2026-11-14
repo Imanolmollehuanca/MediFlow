@@ -1,4 +1,4 @@
-using MediFlow.Domain.Repositories;
+using MediFlow.Domain.Port.Repositories;
 using MediFlow.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,40 +7,41 @@ namespace MediFlow.Infrastructure.Adapters.Repositories;
 public class GenericRepository<T> : IGenericRepository<T>
     where T : class
 {
-    private readonly MediFlowContext _context;
-    private readonly DbSet<T> _dbSet;
+    protected readonly MediFlowContext Context;
+    protected readonly DbSet<T> DbSet;
 
     public GenericRepository(MediFlowContext context)
     {
-        _context = context;
-        _dbSet = _context.Set<T>();
+        Context = context;
+        DbSet = context.Set<T>();
     }
 
     public async Task<IEnumerable<T>> GetAllAsync()
     {
-        return await _dbSet.AsNoTracking().ToListAsync();
+        return await DbSet
+            .AsNoTracking()
+            .ToListAsync();
     }
 
     public async Task<T?> GetByIdAsync(int id)
     {
-        return await _dbSet.FindAsync(id);
+        return await DbSet.FindAsync(id);
     }
 
     public async Task AddAsync(T entity)
     {
-        await _dbSet.AddAsync(entity);
-        await _context.SaveChangesAsync();
+        await DbSet.AddAsync(entity);
     }
 
-    public async Task UpdateAsync(T entity)
+    public Task UpdateAsync(T entity)
     {
-        _dbSet.Update(entity);
-        await _context.SaveChangesAsync();
+        DbSet.Update(entity);
+        return Task.CompletedTask;
     }
 
-    public async Task DeleteAsync(T entity)
+    public Task DeleteAsync(T entity)
     {
-        _dbSet.Remove(entity);
-        await _context.SaveChangesAsync();
+        DbSet.Remove(entity);
+        return Task.CompletedTask;
     }
 }
