@@ -8,7 +8,8 @@ namespace MediFlow.Application.UseCases.Doctors.Queries;
 public record GetDoctorByIdQuery(int DoctorId)
     : IRequest<DoctorDto?>;
 
-internal sealed class GetDoctorByIdQueryHandler : IRequestHandler<GetDoctorByIdQuery, DoctorDto?>
+internal sealed class GetDoctorByIdQueryHandler
+    : IRequestHandler<GetDoctorByIdQuery, DoctorDto?>
 {
     private readonly IGenericRepository<Doctor> _repository;
 
@@ -22,11 +23,11 @@ internal sealed class GetDoctorByIdQueryHandler : IRequestHandler<GetDoctorByIdQ
         GetDoctorByIdQuery request,
         CancellationToken cancellationToken)
     {
-        var doctor = await _repository.GetByIdAsync(request.DoctorId);
+        var doctor = await _repository.GetByIdAsync(
+            request.DoctorId);
 
-        if (doctor is null)
-            return null;
-
-        return new DoctorDto(doctor);
+        return doctor is null
+            ? null
+            : DoctorDto.FromEntity(doctor);
     }
 }

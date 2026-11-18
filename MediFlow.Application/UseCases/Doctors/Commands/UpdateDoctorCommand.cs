@@ -5,7 +5,9 @@ using MediFlow.Domain.Port.Repositories;
 
 namespace MediFlow.Application.UseCases.Doctors.Commands;
 
-public record UpdateDoctorCommand(int DoctorId, UpdateDoctorDto Dto) : IRequest<bool>;
+public record UpdateDoctorCommand(
+    int DoctorId,
+    UpdateDoctorDto Dto) : IRequest<bool>;
 
 internal sealed class UpdateDoctorCommandHandler
     : IRequestHandler<UpdateDoctorCommand, bool>
@@ -33,27 +35,26 @@ internal sealed class UpdateDoctorCommandHandler
             string.IsNullOrWhiteSpace(dto.Phone) ||
             string.IsNullOrWhiteSpace(dto.Email))
         {
-            throw new ArgumentException("Todos los datos del médico son obligatorios.");
+            throw new ArgumentException(
+                "Todos los datos del médico son obligatorios.");
         }
 
-        var doctor = await _doctorRepository.GetByIdAsync(request.DoctorId);
+        var doctor = await _doctorRepository.GetByIdAsync(
+            request.DoctorId);
 
         if (doctor is null || !doctor.IsActive)
             return false;
 
-        var specialty = await _specialtyRepository.GetByIdAsync(dto.SpecialtyId);
+        var specialty = await _specialtyRepository.GetByIdAsync(
+            dto.SpecialtyId);
 
         if (specialty is null || !specialty.IsActive)
         {
-            throw new ArgumentException("La especialidad indicada no existe o está inactiva.");
+            throw new ArgumentException(
+                "La especialidad indicada no existe o está inactiva.");
         }
 
-        doctor.SpecialtyId = dto.SpecialtyId;
-        doctor.FirstName = dto.FirstName.Trim();
-        doctor.LastName = dto.LastName.Trim();
-        doctor.LicenseNumber = dto.LicenseNumber.Trim();
-        doctor.Phone = dto.Phone.Trim();
-        doctor.Email = dto.Email.Trim();
+        dto.ApplyTo(doctor);
 
         await _doctorRepository.UpdateAsync(doctor);
 
