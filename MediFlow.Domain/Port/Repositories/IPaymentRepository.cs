@@ -1,6 +1,7 @@
-﻿namespace MediFlow.Domain.Port.Repositories;
+﻿using MediFlow.Domain.Entities;
 
-public interface IPaymentRepository
+namespace MediFlow.Domain.Port.Repositories;
+
+public interface IPaymentRepository : IGenericRepository<Payment>
 {
-    
 }
