@@ -116,6 +116,34 @@ builder.Services.AddOpenApi(options =>
 
 var app = builder.Build();
 
+
+app.UseExceptionHandler(exceptionApp =>
+{
+    exceptionApp.Run(async context =>
+    {
+        var exception = context.Features
+            .Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()
+            ?.Error;
+
+        var statusCode = exception switch
+        {
+            ArgumentException => StatusCodes.Status400BadRequest,
+            InvalidOperationException => StatusCodes.Status409Conflict,
+            _ => StatusCodes.Status500InternalServerError
+        };
+
+        context.Response.StatusCode = statusCode;
+
+        await context.Response.WriteAsJsonAsync(new
+        {
+            status = statusCode,
+            message = statusCode == StatusCodes.Status500InternalServerError
+                ? "Ocurrió un error interno del servidor."
+                : exception?.Message
+        });
+    });
+});
+
 // Configuración del entorno de desarrollo
 if (app.Environment.IsDevelopment())
 {
