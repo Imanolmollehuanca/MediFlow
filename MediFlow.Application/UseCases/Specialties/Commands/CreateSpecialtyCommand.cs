@@ -1,6 +1,5 @@
 using MediatR;
 using MediFlow.Application.Dtos;
-using MediFlow.Domain.Entities;
 using MediFlow.Domain.Port.Repositories;
 
 namespace MediFlow.Application.UseCases.Specialties.Commands;
@@ -10,11 +9,11 @@ public record CreateSpecialtyCommand(CreateSpecialtyDto Dto) : IRequest<int>;
 internal sealed class CreateSpecialtyCommandHandler
     : IRequestHandler<CreateSpecialtyCommand, int>
 {
-    private readonly IGenericRepository<Specialty> _repository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CreateSpecialtyCommandHandler(IGenericRepository<Specialty> repository)
+    public CreateSpecialtyCommandHandler(IUnitOfWork unitOfWork)
     {
-        _repository = repository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<int> Handle(
@@ -26,15 +25,10 @@ internal sealed class CreateSpecialtyCommandHandler
         if (string.IsNullOrWhiteSpace(dto.Name))
             throw new ArgumentException("El nombre de la especialidad es obligatorio.");
 
-        var specialty = new Specialty
-        {
-            Name = dto.Name.Trim(),
-            Description = dto.Description,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
+        var specialty = dto.ToEntity();
 
-        await _repository.AddAsync(specialty);
+        await _unitOfWork.Specialties.AddAsync(specialty);
+        await _unitOfWork.SaveChangesAsync();
 
         return specialty.SpecialtyId;
     }
