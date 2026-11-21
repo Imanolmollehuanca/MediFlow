@@ -25,6 +25,12 @@ internal sealed class CreateSpecialtyCommandHandler
         if (string.IsNullOrWhiteSpace(dto.Name))
             throw new ArgumentException("El nombre de la especialidad es obligatorio.");
 
+        if (await _unitOfWork.Specialties.ExistsByNameAsync(
+                dto.Name, cancellationToken: cancellationToken))
+        {
+            throw new ArgumentException("Ya existe una especialidad con ese nombre.");
+        }
+
         var specialty = dto.ToEntity();
 
         await _unitOfWork.Specialties.AddAsync(specialty);

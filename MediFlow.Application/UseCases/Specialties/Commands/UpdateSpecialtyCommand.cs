@@ -30,6 +30,12 @@ internal sealed class UpdateSpecialtyCommandHandler
         if (specialty is null || !specialty.IsActive)
             return false;
 
+        if (await _unitOfWork.Specialties.ExistsByNameAsync(
+                dto.Name, request.SpecialtyId, cancellationToken))
+        {
+            throw new ArgumentException("Ya existe otra especialidad con ese nombre.");
+        }
+
         dto.ApplyTo(specialty);
 
         await _unitOfWork.Specialties.UpdateAsync(specialty);
