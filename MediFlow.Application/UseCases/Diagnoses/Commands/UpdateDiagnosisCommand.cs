@@ -1,6 +1,5 @@
 using MediatR;
 using MediFlow.Application.Dtos;
-using MediFlow.Domain.Entities;
 using MediFlow.Domain.Port.Repositories;
 
 namespace MediFlow.Application.UseCases.Diagnoses.Commands;
@@ -11,14 +10,15 @@ public record UpdateDiagnosisCommand(
 ) : IRequest<bool>;
 
 internal sealed class UpdateDiagnosisCommandHandler(
-    IGenericRepository<Diagnosis> diagnoses
+    IUnitOfWork unitOfWork
 ) : IRequestHandler<UpdateDiagnosisCommand, bool>
 {
     public async Task<bool> Handle(
         UpdateDiagnosisCommand request,
         CancellationToken cancellationToken)
     {
-        var diagnosis = await diagnoses.GetByIdAsync(request.DiagnosisId);
+        var diagnosis = await unitOfWork.Diagnoses.GetByIdAsync(request.DiagnosisId);
+
         if (diagnosis is null)
             return false;
 
@@ -26,7 +26,9 @@ internal sealed class UpdateDiagnosisCommandHandler(
             throw new ArgumentException("La descripción del diagnóstico es obligatoria.");
 
         request.Dto.ApplyTo(diagnosis);
-        await diagnoses.UpdateAsync(diagnosis);
+
+        await unitOfWork.Diagnoses.UpdateAsync(diagnosis);
+        await unitOfWork.SaveChangesAsync();
 
         return true;
     }

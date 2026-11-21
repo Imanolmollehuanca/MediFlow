@@ -11,9 +11,14 @@ namespace MediFlow.Controllers;
 public class DiagnosesController(ISender mediator) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(
+        [FromQuery] int? medicalRecordId = null)
     {
-        var diagnoses = await mediator.Send(new GetDiagnosesQuery());
+        if (medicalRecordId.HasValue && medicalRecordId.Value <= 0)
+            return BadRequest("El ID de la historia clínica debe ser válido.");
+
+        var diagnoses = await mediator.Send(
+            new GetDiagnosesQuery(medicalRecordId));
 
         return Ok(diagnoses);
     }
