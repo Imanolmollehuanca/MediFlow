@@ -1,6 +1,7 @@
-﻿namespace MediFlow.Domain.Port.Repositories;
+﻿using MediFlow.Domain.Entities;
 
-public interface IPrescriptionRepository
+namespace MediFlow.Domain.Port.Repositories;
+
+public interface IPrescriptionRepository : IGenericRepository<Prescription>
 {
-    
 }
