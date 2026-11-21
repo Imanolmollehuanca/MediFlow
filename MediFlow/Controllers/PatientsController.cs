@@ -18,9 +18,14 @@ public class PatientsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(
+        [FromQuery] string? documentNumber,
+        [FromQuery] string? name,
+        [FromQuery] bool? isActive)
     {
-        var patients = await _mediator.Send(new GetPatientsQuery());
+        var patients = await _mediator.Send(
+            new GetPatientsQuery(documentNumber, name, isActive));
+
         return Ok(patients);
     }
 
@@ -31,7 +36,7 @@ public class PatientsController : ControllerBase
             new GetPatientByIdQuery(id));
 
         if (patient is null)
-            return NotFound();
+            return NotFound(new { message = $"No se encontró el paciente con ID {id}." });
 
         return Ok(patient);
     }
@@ -40,13 +45,16 @@ public class PatientsController : ControllerBase
     public async Task<IActionResult> Create(
         [FromBody] CreatePatientDto dto)
     {
-        var patientId = await _mediator.Send(
-            new CreatePatientCommand(dto));
+        return await ExecuteSafe(async () =>
+        {
+            var patientId = await _mediator.Send(
+                new CreatePatientCommand(dto));
 
-        return CreatedAtAction(
-            nameof(GetById),
-            new { id = patientId },
-            new { PatientId = patientId });
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = patientId },
+                new { PatientId = patientId });
+        });
     }
 
     [HttpPut("{id:int}")]
@@ -54,13 +62,16 @@ public class PatientsController : ControllerBase
         int id,
         [FromBody] UpdatePatientDto dto)
     {
-        var updated = await _mediator.Send(
-            new UpdatePatientCommand(id, dto));
+        return await ExecuteSafe(async () =>
+        {
+            var updated = await _mediator.Send(
+                new UpdatePatientCommand(id, dto));
 
-        if (!updated)
-            return NotFound();
+            if (!updated)
+                return NotFound(new { message = $"No se encontró el paciente con ID {id}." });
 
-        return NoContent();
+            return NoContent();
+        });
     }
 
     [HttpDelete("{id:int}")]
@@ -70,8 +81,24 @@ public class PatientsController : ControllerBase
             new DeletePatientCommand(id));
 
         if (!deleted)
-            return NotFound();
+            return NotFound(new { message = $"No se encontró el paciente activo con ID {id}." });
 
         return NoContent();
+    }
+
+    private async Task<IActionResult> ExecuteSafe(Func<Task<IActionResult>> action)
+    {
+        try
+        {
+            return await action();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
     }
 }
