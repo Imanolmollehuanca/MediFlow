@@ -11,7 +11,8 @@ internal sealed class CreateDiagnosisCommandHandler(
     IGenericRepository<Diagnosis> diagnoses,
     IGenericRepository<MedicalRecord> medicalRecords,
     IGenericRepository<Appointment> appointments,
-    IGenericRepository<Doctor> doctors
+    IGenericRepository<Doctor> doctors,
+    IUnitOfWork unitOfWork
 ) : IRequestHandler<CreateDiagnosisCommand, int>
 {
     public async Task<int> Handle(
@@ -19,23 +20,39 @@ internal sealed class CreateDiagnosisCommandHandler(
         CancellationToken cancellationToken)
     {
         var dto = request.Dto;
+
         if (string.IsNullOrWhiteSpace(dto.Description))
-            throw new ArgumentException("La descripción del diagnóstico es obligatoria.");
+            throw new ArgumentException(
+                "La descripción del diagnóstico es obligatoria.");
 
-        var medicalRecord = await medicalRecords.GetByIdAsync(dto.MedicalRecordId);
+        var medicalRecord = await medicalRecords
+            .GetByIdAsync(dto.MedicalRecordId);
+
         if (medicalRecord is null)
-            throw new ArgumentException("La historia clínica no existe.");
+            throw new ArgumentException(
+                "La historia clínica no existe.");
 
-        var appointment = await appointments.GetByIdAsync(dto.AppointmentId);
+        var appointment = await appointments
+            .GetByIdAsync(dto.AppointmentId);
+
         if (appointment is null)
-            throw new ArgumentException("La cita médica no existe.");
+            throw new ArgumentException(
+                "La cita médica no existe.");
 
-        var doctor = await doctors.GetByIdAsync(dto.DoctorId);
+        var doctor = await doctors
+            .GetByIdAsync(dto.DoctorId);
+
         if (doctor is null)
-            throw new ArgumentException("El médico no existe.");
+            throw new ArgumentException(
+                "El médico no existe.");
 
         var diagnosis = dto.ToEntity();
+
         await diagnoses.AddAsync(diagnosis);
+
+        // Guardar los cambios en PostgreSQL
+        await unitOfWork.SaveChangesAsync();
+
         return diagnosis.DiagnosisId;
     }
 }

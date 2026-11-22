@@ -10,6 +10,20 @@ namespace MediFlow.Controllers;
 [Route("api/[controller]")]
 public class PrescriptionsController(ISender sender) : ControllerBase
 {
+    
+    [HttpGet("patient/{patientId:int}")]
+    public async Task<ActionResult<IEnumerable<PrescriptionDto>>> GetByPatient(
+        int patientId)
+    {
+        if (patientId <= 0)
+            return BadRequest(new { message = "El ID del paciente debe ser válido." });
+
+        var prescriptions = await sender.Send(
+            new GetPrescriptionsByPatientQuery(patientId));
+
+        return Ok(prescriptions);
+    }
+    
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PrescriptionDto>>> GetAll()
     {
