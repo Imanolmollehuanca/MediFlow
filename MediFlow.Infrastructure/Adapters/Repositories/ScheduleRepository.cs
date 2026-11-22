@@ -47,17 +47,32 @@ public class ScheduleRepository(MediFlowContext context)
         int? excludedScheduleId = null,
         CancellationToken cancellationToken = default)
     {
-        var conflicts =
+        return GetRoomSchedulesQuery(doctorId, dayOfWeek).AnyAsync(schedule =>
+                (!excludedScheduleId.HasValue || schedule.ScheduleId != excludedScheduleId.Value)
+                && startTime < schedule.EndTime && endTime > schedule.StartTime,
+            cancellationToken);
+    }
+
+    public async Task<IEnumerable<Schedule>> GetRoomSchedulesAsync(
+        int doctorId, short dayOfWeek, CancellationToken cancellationToken = default)
+    {
+        return await GetRoomSchedulesQuery(doctorId, dayOfWeek)
+            .AsNoTracking()
+            .Distinct()
+            .OrderBy(schedule => schedule.StartTime)
+            .ThenBy(schedule => schedule.ScheduleId)
+            .ToListAsync(cancellationToken);
+    }
+
+    private IQueryable<Schedule> GetRoomSchedulesQuery(int doctorId, short dayOfWeek)
+    {
+        return
             from assignedRoom in Context.DoctorRooms
             join otherAssignment in Context.DoctorRooms on assignedRoom.RoomId equals otherAssignment.RoomId
             join otherSchedule in DbSet on otherAssignment.DoctorId equals otherSchedule.DoctorId
             where assignedRoom.IsActive && assignedRoom.DoctorId == doctorId
                 && otherAssignment.IsActive && otherAssignment.DoctorId != doctorId
                 && otherSchedule.IsActive && otherSchedule.DayOfWeek == dayOfWeek
-                && (!excludedScheduleId.HasValue || otherSchedule.ScheduleId != excludedScheduleId.Value)
-                && startTime < otherSchedule.EndTime && endTime > otherSchedule.StartTime
-            select otherSchedule.ScheduleId;
-
-        return conflicts.AnyAsync(cancellationToken);
+            select otherSchedule;
     }
 }

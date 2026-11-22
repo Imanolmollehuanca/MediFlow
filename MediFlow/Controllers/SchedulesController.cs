@@ -3,6 +3,7 @@ using MediFlow.Application.Dtos;
 using MediFlow.Application.UseCases.Schedules.Commands;
 using MediFlow.Application.UseCases.Schedules.Queries;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace MediFlow.Controllers;
 
@@ -31,6 +32,32 @@ public class SchedulesController : ControllerBase
             return Ok(schedules);
         }
         catch (ArgumentException ex)
+        {
+            return CommandProblem(ex);
+        }
+    }
+
+    [HttpGet("availability")]
+    [EndpointSummary("Consultar turnos disponibles de un médico")]
+    [EndpointDescription("date usa el formato yyyy-MM-dd en UTC. Devuelve turnos completos futuros, " +
+        "descontando citas no canceladas y conflictos de salas. RoomIds contiene las salas activas asignadas; " +
+        "puede estar vacío si el médico no tiene sala. La consulta no reserva el turno.")]
+    [ProducesResponseType(typeof(IEnumerable<ScheduleAvailabilityDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<IEnumerable<ScheduleAvailabilityDto>>> GetAvailability(
+        [FromQuery, BindRequired] int doctorId,
+        [FromQuery, BindRequired] DateOnly date,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var slots = await _mediator.Send(new GetDoctorAvailabilityQuery(doctorId, date), cancellationToken);
+            return Ok(slots);
+        }
+        catch (Exception ex) when (
+            ex is ArgumentException or KeyNotFoundException or InvalidOperationException)
         {
             return CommandProblem(ex);
         }

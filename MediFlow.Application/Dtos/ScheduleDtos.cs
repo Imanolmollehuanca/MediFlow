@@ -21,6 +21,24 @@ public record ScheduleDto(
         schedule.IsActive);
 }
 
+public record ScheduleAvailabilityDto(
+    int ScheduleId,
+    int DoctorId,
+    DateTime StartDateTime,
+    DateTime EndDateTime,
+    int SlotDurationMinutes,
+    IReadOnlyList<int> RoomIds)
+{
+    public static ScheduleAvailabilityDto FromEntity(
+        Schedule schedule, DateTime startDateTime, IReadOnlyList<int> roomIds) => new(
+            schedule.ScheduleId,
+            schedule.DoctorId,
+            startDateTime,
+            startDateTime.AddMinutes(schedule.SlotDurationMinutes),
+            schedule.SlotDurationMinutes,
+            roomIds);
+}
+
 public record CreateScheduleDto(
     int DoctorId,
     short DayOfWeek,

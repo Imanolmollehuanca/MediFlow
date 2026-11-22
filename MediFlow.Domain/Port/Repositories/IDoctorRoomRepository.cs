@@ -15,4 +15,7 @@ public interface IDoctorRoomRepository : IGenericRepository<DoctorRoom>
     Task<bool> HasScheduleConflictAsync(
         int doctorId, int roomId, int? excludedAssignmentId = null,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<int>> GetActiveRoomIdsAsync(
+        int doctorId, CancellationToken cancellationToken = default);
 }

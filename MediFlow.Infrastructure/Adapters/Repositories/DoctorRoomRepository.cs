@@ -51,4 +51,15 @@ public class DoctorRoomRepository(MediFlowContext context)
 
         return conflicts.AnyAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<int>> GetActiveRoomIdsAsync(
+        int doctorId, CancellationToken cancellationToken = default)
+    {
+        return await DbSet
+            .Where(assignment => assignment.IsActive && assignment.DoctorId == doctorId && assignment.Room.IsActive)
+            .Select(assignment => assignment.RoomId)
+            .Distinct()
+            .OrderBy(roomId => roomId)
+            .ToListAsync(cancellationToken);
+    }
 }

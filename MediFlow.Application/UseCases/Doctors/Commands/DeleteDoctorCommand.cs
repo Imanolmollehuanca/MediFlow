@@ -1,5 +1,4 @@
 using MediatR;
-using MediFlow.Domain.Entities;
 using MediFlow.Domain.Port.Repositories;
 
 namespace MediFlow.Application.UseCases.Doctors.Commands;
@@ -8,24 +7,25 @@ public record DeleteDoctorCommand(int DoctorId) : IRequest<bool>;
 
 internal sealed class DeleteDoctorCommandHandler : IRequestHandler<DeleteDoctorCommand, bool>
 {
-    private readonly IGenericRepository<Doctor> _repository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public DeleteDoctorCommandHandler(IGenericRepository<Doctor> repository)
+    public DeleteDoctorCommandHandler(IUnitOfWork unitOfWork)
     {
-        _repository = repository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<bool> Handle(
         DeleteDoctorCommand request,
         CancellationToken cancellationToken)
     {
-        var doctor = await _repository.GetByIdAsync(request.DoctorId);
+        var doctor = await _unitOfWork.Doctors.GetByIdAsync(request.DoctorId);
 
         if (doctor is null || !doctor.IsActive)
             return false;
 
         doctor.IsActive = false;
-        await _repository.UpdateAsync(doctor);
+        await _unitOfWork.Doctors.UpdateAsync(doctor);
+        await _unitOfWork.SaveChangesAsync();
         return true;
     }
 }

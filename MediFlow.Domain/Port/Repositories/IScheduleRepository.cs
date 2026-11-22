@@ -23,4 +23,7 @@ public interface IScheduleRepository : IGenericRepository<Schedule>
         TimeOnly endTime,
         int? excludedScheduleId = null,
         CancellationToken cancellationToken = default);
+
+    Task<IEnumerable<Schedule>> GetRoomSchedulesAsync(
+        int doctorId, short dayOfWeek, CancellationToken cancellationToken = default);
 }
