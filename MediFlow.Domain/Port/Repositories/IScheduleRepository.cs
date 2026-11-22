@@ -1,6 +1,7 @@
-﻿namespace MediFlow.Domain.Port.Repositories;
+using MediFlow.Domain.Entities;
 
-public interface IScheduleRepository
+namespace MediFlow.Domain.Port.Repositories;
+
+public interface IScheduleRepository : IGenericRepository<Schedule>
 {
-    
 }
