@@ -1,6 +1,15 @@
-﻿namespace MediFlow.Domain.Port.Repositories;
+using MediFlow.Domain.Entities;
 
-public interface IRoomRepository
+namespace MediFlow.Domain.Port.Repositories;
+
+public interface IRoomRepository : IGenericRepository<Room>
 {
-    
+    Task<bool> ExistsByRoomNumberAsync(
+        string roomNumber,
+        int? excludedRoomId = null,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> HasActiveDoctorAssignmentsAsync(
+        int roomId,
+        CancellationToken cancellationToken = default);
 }
