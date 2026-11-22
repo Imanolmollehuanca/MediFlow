@@ -20,7 +20,7 @@ internal sealed class UpdateScheduleCommandHandler(IUnitOfWork unitOfWork)
         var dto = request.Dto;
         await ScheduleValidation.ValidateAsync(
             unitOfWork, dto.DoctorId, dto.DayOfWeek, dto.StartTime, dto.EndTime,
-            dto.SlotDurationMinutes, dto.IsActive);
+            dto.SlotDurationMinutes, dto.IsActive, schedule.ScheduleId, cancellationToken);
 
         dto.ApplyTo(schedule);
         await unitOfWork.Schedules.UpdateAsync(schedule);

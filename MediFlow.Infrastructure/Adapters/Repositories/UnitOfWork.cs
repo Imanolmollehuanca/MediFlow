@@ -1,4 +1,5 @@
 
+using MediFlow.Domain.Entities;
 using MediFlow.Domain.Port.Repositories;
 using MediFlow.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
@@ -63,6 +64,25 @@ public class UnitOfWork : IUnitOfWork
             { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: MediFlowContext.ActiveDoctorRoomIndex })
         {
             throw new InvalidOperationException("El médico ya tiene una asignación activa en esta sala.", ex);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+            { SqlState: PostgresErrorCodes.ExclusionViolation, ConstraintName: MediFlowContext.ScheduleOverlapConstraint })
+        {
+            throw new InvalidOperationException("El médico ya tiene un horario que se solapa en ese día.", ex);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+            { SqlState: PostgresErrorCodes.CheckViolation, ConstraintName: var constraintName } &&
+            constraintName is MediFlowContext.ScheduleDayConstraint or
+                MediFlowContext.ScheduleTimeConstraint or MediFlowContext.ScheduleDurationConstraint)
+        {
+            throw new ArgumentException("El día, el intervalo o la duración de cita del horario no son válidos.", ex);
+        }
+        catch (InvalidOperationException ex) when (ex.InnerException is DbUpdateException
+            { InnerException: PostgresException { SqlState: PostgresErrorCodes.DeadlockDetected } } updateException &&
+            updateException.Entries.Count > 0 && updateException.Entries.All(entry => entry.Entity is Schedule))
+        {
+            throw new InvalidOperationException(
+                "El horario no pudo guardarse por una modificación simultánea. Vuelve a intentarlo.", ex);
         }
     }
 }

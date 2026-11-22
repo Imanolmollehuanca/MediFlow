@@ -21,4 +21,21 @@ public class ScheduleRepository(MediFlowContext context)
             .OrderBy(schedule => schedule.ScheduleId)
             .ToListAsync(cancellationToken);
     }
+
+    public Task<bool> HasOverlappingScheduleAsync(
+        int doctorId,
+        short dayOfWeek,
+        TimeOnly startTime,
+        TimeOnly endTime,
+        int? excludedScheduleId = null,
+        CancellationToken cancellationToken = default)
+    {
+        return DbSet.AnyAsync(schedule =>
+            schedule.IsActive &&
+            schedule.DoctorId == doctorId &&
+            schedule.DayOfWeek == dayOfWeek &&
+            (!excludedScheduleId.HasValue || schedule.ScheduleId != excludedScheduleId.Value) &&
+            startTime < schedule.EndTime && endTime > schedule.StartTime,
+            cancellationToken);
+    }
 }

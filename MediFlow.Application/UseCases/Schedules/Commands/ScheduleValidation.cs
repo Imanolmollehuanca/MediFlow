@@ -11,7 +11,9 @@ internal static class ScheduleValidation
         TimeOnly startTime,
         TimeOnly endTime,
         int slotDurationMinutes,
-        bool isActive)
+        bool isActive,
+        int? excludedScheduleId,
+        CancellationToken cancellationToken)
     {
         if (doctorId <= 0)
             throw new ArgumentException("El ID del médico debe ser positivo.");
@@ -31,7 +33,16 @@ internal static class ScheduleValidation
         var doctor = await unitOfWork.Doctors.GetByIdAsync(doctorId)
             ?? throw new KeyNotFoundException("El médico no existe.");
 
-        if (isActive && !doctor.IsActive)
+        if (!isActive)
+            return;
+
+        if (!doctor.IsActive)
             throw new InvalidOperationException("El horario activo requiere un médico activo.");
+
+        if (await unitOfWork.Schedules.HasOverlappingScheduleAsync(
+                doctorId, dayOfWeek, startTime, endTime, excludedScheduleId, cancellationToken))
+        {
+            throw new InvalidOperationException("El médico ya tiene un horario que se solapa en ese día.");
+        }
     }
 }

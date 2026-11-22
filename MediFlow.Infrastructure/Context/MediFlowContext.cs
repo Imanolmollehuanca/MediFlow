@@ -6,6 +6,10 @@ namespace MediFlow.Infrastructure.Context;
 public class MediFlowContext : DbContext
 {
     internal const string ActiveDoctorRoomIndex = "UX_DoctorRooms_ActiveDoctorRoom";
+    internal const string ScheduleDayConstraint = "CK_Schedules_ActiveDay";
+    internal const string ScheduleTimeConstraint = "CK_Schedules_ActiveTimes";
+    internal const string ScheduleDurationConstraint = "CK_Schedules_ActiveDuration";
+    internal const string ScheduleOverlapConstraint = "EX_Schedules_DoctorDayNoOverlap";
 
     public MediFlowContext(DbContextOptions<MediFlowContext> options)
         : base(options)
@@ -36,6 +40,19 @@ public class MediFlowContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.HasPostgresExtension("btree_gist");
+
+        modelBuilder.Entity<Schedule>().ToTable(table =>
+        {
+            table.HasCheckConstraint(ScheduleDayConstraint,
+                "NOT \"IsActive\" OR \"DayOfWeek\" BETWEEN 0 AND 6");
+            table.HasCheckConstraint(ScheduleTimeConstraint,
+                "NOT \"IsActive\" OR \"StartTime\" < \"EndTime\"");
+            table.HasCheckConstraint(ScheduleDurationConstraint,
+                "NOT \"IsActive\" OR (\"SlotDurationMinutes\" > 0 AND " +
+                "\"SlotDurationMinutes\" * INTERVAL '1 minute' <= \"EndTime\" - \"StartTime\")");
+        });
 
         // ==========================================
         // RELACIONES EXISTENTES: USUARIOS Y ROLES

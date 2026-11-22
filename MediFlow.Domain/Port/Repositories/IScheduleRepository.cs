@@ -7,4 +7,12 @@ public interface IScheduleRepository : IGenericRepository<Schedule>
     Task<IEnumerable<Schedule>> GetSchedulesAsync(
         int? doctorId = null,
         CancellationToken cancellationToken = default);
+
+    Task<bool> HasOverlappingScheduleAsync(
+        int doctorId,
+        short dayOfWeek,
+        TimeOnly startTime,
+        TimeOnly endTime,
+        int? excludedScheduleId = null,
+        CancellationToken cancellationToken = default);
 }
