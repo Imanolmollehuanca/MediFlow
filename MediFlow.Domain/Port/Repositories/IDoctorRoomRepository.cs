@@ -1,6 +1,7 @@
-﻿namespace MediFlow.Domain.Port.Repositories;
+using MediFlow.Domain.Entities;
 
-public interface IDoctorRoomRepository
+namespace MediFlow.Domain.Port.Repositories;
+
+public interface IDoctorRoomRepository : IGenericRepository<DoctorRoom>
 {
-    
 }
