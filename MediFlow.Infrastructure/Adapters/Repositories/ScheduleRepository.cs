@@ -38,4 +38,26 @@ public class ScheduleRepository(MediFlowContext context)
             startTime < schedule.EndTime && endTime > schedule.StartTime,
             cancellationToken);
     }
+
+    public Task<bool> HasRoomConflictAsync(
+        int doctorId,
+        short dayOfWeek,
+        TimeOnly startTime,
+        TimeOnly endTime,
+        int? excludedScheduleId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var conflicts =
+            from assignedRoom in Context.DoctorRooms
+            join otherAssignment in Context.DoctorRooms on assignedRoom.RoomId equals otherAssignment.RoomId
+            join otherSchedule in DbSet on otherAssignment.DoctorId equals otherSchedule.DoctorId
+            where assignedRoom.IsActive && assignedRoom.DoctorId == doctorId
+                && otherAssignment.IsActive && otherAssignment.DoctorId != doctorId
+                && otherSchedule.IsActive && otherSchedule.DayOfWeek == dayOfWeek
+                && (!excludedScheduleId.HasValue || otherSchedule.ScheduleId != excludedScheduleId.Value)
+                && startTime < otherSchedule.EndTime && endTime > otherSchedule.StartTime
+            select otherSchedule.ScheduleId;
+
+        return conflicts.AnyAsync(cancellationToken);
+    }
 }

@@ -15,4 +15,12 @@ public interface IScheduleRepository : IGenericRepository<Schedule>
         TimeOnly endTime,
         int? excludedScheduleId = null,
         CancellationToken cancellationToken = default);
+
+    Task<bool> HasRoomConflictAsync(
+        int doctorId,
+        short dayOfWeek,
+        TimeOnly startTime,
+        TimeOnly endTime,
+        int? excludedScheduleId = null,
+        CancellationToken cancellationToken = default);
 }

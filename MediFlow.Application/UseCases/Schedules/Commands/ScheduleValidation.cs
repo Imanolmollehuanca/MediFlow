@@ -44,5 +44,11 @@ internal static class ScheduleValidation
         {
             throw new InvalidOperationException("El médico ya tiene un horario que se solapa en ese día.");
         }
+
+        if (await unitOfWork.Schedules.HasRoomConflictAsync(
+                doctorId, dayOfWeek, startTime, endTime, excludedScheduleId, cancellationToken))
+        {
+            throw new InvalidOperationException("Una sala asignada al médico ya está ocupada por otro médico en ese horario.");
+        }
     }
 }

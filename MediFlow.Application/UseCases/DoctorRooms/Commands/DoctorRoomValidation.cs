@@ -25,5 +25,9 @@ internal static class DoctorRoomValidation
         if (await unitOfWork.DoctorRooms.HasActiveAssignmentAsync(
                 doctorId, roomId, excludedAssignmentId, cancellationToken))
             throw new InvalidOperationException("El médico ya tiene una asignación activa en esta sala.");
+
+        if (await unitOfWork.DoctorRooms.HasScheduleConflictAsync(
+                doctorId, roomId, excludedAssignmentId, cancellationToken))
+            throw new InvalidOperationException("La sala ya está ocupada por otro médico en un horario del médico asignado.");
     }
 }

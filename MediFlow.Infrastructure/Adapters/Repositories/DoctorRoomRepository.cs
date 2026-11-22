@@ -32,4 +32,23 @@ public class DoctorRoomRepository(MediFlowContext context)
         return DbSet.AnyAsync(a => a.IsActive && a.DoctorId == doctorId && a.RoomId == roomId
             && a.DoctorRoomId != excludedAssignmentId, cancellationToken);
     }
+
+    public Task<bool> HasScheduleConflictAsync(
+        int doctorId, int roomId, int? excludedAssignmentId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var conflicts =
+            from schedule in Context.Schedules
+            from otherAssignment in DbSet
+            join otherSchedule in Context.Schedules on otherAssignment.DoctorId equals otherSchedule.DoctorId
+            where schedule.IsActive && schedule.DoctorId == doctorId
+                && otherAssignment.IsActive && otherAssignment.RoomId == roomId
+                && otherAssignment.DoctorId != doctorId
+                && (!excludedAssignmentId.HasValue || otherAssignment.DoctorRoomId != excludedAssignmentId.Value)
+                && otherSchedule.IsActive && otherSchedule.DayOfWeek == schedule.DayOfWeek
+                && schedule.StartTime < otherSchedule.EndTime && schedule.EndTime > otherSchedule.StartTime
+            select otherAssignment.DoctorRoomId;
+
+        return conflicts.AnyAsync(cancellationToken);
+    }
 }
