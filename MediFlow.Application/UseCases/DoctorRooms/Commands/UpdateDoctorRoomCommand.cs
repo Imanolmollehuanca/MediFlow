@@ -17,7 +17,11 @@ internal sealed class UpdateDoctorRoomCommandHandler(IUnitOfWork unitOfWork)
         if (assignment is null)
             return false;
 
-        request.Dto.ApplyTo(assignment);
+        var dto = request.Dto;
+        await DoctorRoomValidation.ValidateAsync(unitOfWork, dto.DoctorId, dto.RoomId,
+            dto.IsActive, assignment.DoctorRoomId, cancellationToken);
+
+        dto.ApplyTo(assignment);
         await unitOfWork.DoctorRooms.UpdateAsync(assignment);
         await unitOfWork.SaveChangesAsync();
 

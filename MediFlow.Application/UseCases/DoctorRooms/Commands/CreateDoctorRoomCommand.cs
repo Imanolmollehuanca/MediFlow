@@ -13,7 +13,11 @@ internal sealed class CreateDoctorRoomCommandHandler(IUnitOfWork unitOfWork)
         CreateDoctorRoomCommand request,
         CancellationToken cancellationToken)
     {
-        var assignment = request.Dto.ToEntity();
+        var dto = request.Dto;
+        await DoctorRoomValidation.ValidateAsync(unitOfWork, dto.DoctorId, dto.RoomId,
+            isActive: true, excludedAssignmentId: null, cancellationToken);
+
+        var assignment = dto.ToEntity();
         await unitOfWork.DoctorRooms.AddAsync(assignment);
         await unitOfWork.SaveChangesAsync();
 

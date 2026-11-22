@@ -5,6 +5,8 @@ namespace MediFlow.Infrastructure.Context;
 
 public class MediFlowContext : DbContext
 {
+    internal const string ActiveDoctorRoomIndex = "UX_DoctorRooms_ActiveDoctorRoom";
+
     public MediFlowContext(DbContextOptions<MediFlowContext> options)
         : base(options)
     {
@@ -145,6 +147,12 @@ public class MediFlowContext : DbContext
         // ==========================================
         // MÉDICOS Y CONSULTORIOS
         // ==========================================
+
+        modelBuilder.Entity<DoctorRoom>()
+            .HasIndex(dr => new { dr.DoctorId, dr.RoomId })
+            .HasDatabaseName(ActiveDoctorRoomIndex)
+            .HasFilter("\"IsActive\"")
+            .IsUnique();
 
         modelBuilder.Entity<DoctorRoom>()
             .HasOne(dr => dr.Doctor)

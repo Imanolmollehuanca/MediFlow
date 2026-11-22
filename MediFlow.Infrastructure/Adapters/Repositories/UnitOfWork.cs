@@ -1,6 +1,8 @@
 
 using MediFlow.Domain.Port.Repositories;
 using MediFlow.Infrastructure.Context;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace MediFlow.Infrastructure.Adapters.Repositories;
 
@@ -51,8 +53,16 @@ public class UnitOfWork : IUnitOfWork
     public IUserRepository Users { get; }
     public IUserRoleRepository UserRoles { get; }
 
-    public Task<int> SaveChangesAsync()
+    public async Task<int> SaveChangesAsync()
     {
-        return _context.SaveChangesAsync();
+        try
+        {
+            return await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+            { SqlState: PostgresErrorCodes.UniqueViolation, ConstraintName: MediFlowContext.ActiveDoctorRoomIndex })
+        {
+            throw new InvalidOperationException("El médico ya tiene una asignación activa en esta sala.", ex);
+        }
     }
 }
