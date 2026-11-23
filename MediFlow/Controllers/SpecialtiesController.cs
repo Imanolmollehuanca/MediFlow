@@ -71,12 +71,23 @@ public class SpecialtiesController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Delete(int id)
     {
-        var deleted = await _mediator.Send(new DeleteSpecialtyCommand(id));
-        if (!deleted)
-            return NotFound();
+        try
+        {
+            var deleted = await _mediator.Send(new DeleteSpecialtyCommand(id));
 
-        return NoContent();
+            if (!deleted)
+                return NotFound();
+
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
     }
 }

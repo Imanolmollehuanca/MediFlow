@@ -1,24 +1,21 @@
 using MediatR;
 using MediFlow.Application.Dtos;
-using MediFlow.Domain.Entities;
 using MediFlow.Domain.Port.Repositories;
 
 namespace MediFlow.Application.UseCases.Doctors.Commands;
 
-public record UpdateDoctorCommand(int DoctorId, UpdateDoctorDto Dto) : IRequest<bool>;
+public record UpdateDoctorCommand(
+    int DoctorId,
+    UpdateDoctorDto Dto) : IRequest<bool>;
 
 internal sealed class UpdateDoctorCommandHandler
     : IRequestHandler<UpdateDoctorCommand, bool>
 {
-    private readonly IGenericRepository<Doctor> _doctorRepository;
-    private readonly IGenericRepository<Specialty> _specialtyRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateDoctorCommandHandler(
-        IGenericRepository<Doctor> doctorRepository,
-        IGenericRepository<Specialty> specialtyRepository)
+    public UpdateDoctorCommandHandler(IUnitOfWork unitOfWork)
     {
-        _doctorRepository = doctorRepository;
-        _specialtyRepository = specialtyRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<bool> Handle(
@@ -33,29 +30,49 @@ internal sealed class UpdateDoctorCommandHandler
             string.IsNullOrWhiteSpace(dto.Phone) ||
             string.IsNullOrWhiteSpace(dto.Email))
         {
-            throw new ArgumentException("Todos los datos del médico son obligatorios.");
+            throw new ArgumentException(
+                "Todos los datos del médico son obligatorios.");
         }
 
-        var doctor = await _doctorRepository.GetByIdAsync(request.DoctorId);
+        if (dto.SpecialtyId <= 0)
+        {
+            throw new ArgumentException(
+                "El identificador de la especialidad debe ser mayor que cero.");
+        }
+
+        var doctor = await _unitOfWork.Doctors.GetByIdAsync(
+            request.DoctorId);
 
         if (doctor is null || !doctor.IsActive)
             return false;
 
-        var specialty = await _specialtyRepository.GetByIdAsync(dto.SpecialtyId);
+        var specialty = await _unitOfWork.Specialties.GetByIdAsync(
+            dto.SpecialtyId);
 
         if (specialty is null || !specialty.IsActive)
         {
-            throw new ArgumentException("La especialidad indicada no existe o está inactiva.");
+            throw new ArgumentException(
+                "La especialidad indicada no existe o está inactiva.");
         }
 
-        doctor.SpecialtyId = dto.SpecialtyId;
-        doctor.FirstName = dto.FirstName.Trim();
-        doctor.LastName = dto.LastName.Trim();
-        doctor.LicenseNumber = dto.LicenseNumber.Trim();
-        doctor.Phone = dto.Phone.Trim();
-        doctor.Email = dto.Email.Trim();
+        if (await _unitOfWork.Doctors.ExistsByLicenseNumberAsync(
+                dto.LicenseNumber, request.DoctorId, cancellationToken))
+        {
+            throw new ArgumentException(
+                "Ya existe otro médico con ese número de licencia.");
+        }
 
-        await _doctorRepository.UpdateAsync(doctor);
+        if (await _unitOfWork.Doctors.ExistsByEmailAsync(
+                dto.Email, request.DoctorId, cancellationToken))
+        {
+            throw new ArgumentException(
+                "Ya existe otro médico con ese correo electrónico.");
+        }
+
+        dto.ApplyTo(doctor);
+
+        await _unitOfWork.Doctors.UpdateAsync(doctor);
+        await _unitOfWork.SaveChangesAsync();
 
         return true;
     }

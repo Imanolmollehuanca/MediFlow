@@ -18,19 +18,31 @@ public class DoctorsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    [ProducesResponseType(typeof(IEnumerable<DoctorDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<DoctorDto>>> GetAll(
+        CancellationToken cancellationToken)
     {
-        var doctors = await _mediator.Send(new GetDoctorsQuery());
+        var doctors = await _mediator.Send(new GetDoctorsQuery(), cancellationToken);
         return Ok(doctors);
     }
 
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    [ProducesResponseType(typeof(DoctorDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<DoctorDto>> GetById(
+        int id,
+        CancellationToken cancellationToken)
     {
-        var doctor = await _mediator.Send(new GetDoctorByIdQuery(id));
+        var doctor = await _mediator.Send(new GetDoctorByIdQuery(id), cancellationToken);
 
         if (doctor is null)
-            return NotFound();
+        {
+            return NotFound(new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Médico no encontrado."
+            });
+        }
 
         return Ok(doctor);
     }

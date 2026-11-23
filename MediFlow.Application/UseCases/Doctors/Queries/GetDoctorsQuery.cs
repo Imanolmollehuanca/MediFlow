@@ -1,26 +1,28 @@
 using MediatR;
 using MediFlow.Application.Dtos;
-using MediFlow.Domain.Entities;
 using MediFlow.Domain.Port.Repositories;
 
 namespace MediFlow.Application.UseCases.Doctors.Queries;
-public record GetDoctorsQuery() : IRequest<IEnumerable<DoctorDto>>;
 
-internal sealed class GetDoctorsQueryHandler : IRequestHandler<GetDoctorsQuery, IEnumerable<DoctorDto>>
+public record GetDoctorsQuery()
+    : IRequest<IEnumerable<DoctorDto>>;
+
+internal sealed class GetDoctorsQueryHandler
+    : IRequestHandler<GetDoctorsQuery, IEnumerable<DoctorDto>>
 {
-    private readonly IGenericRepository<Doctor> _repository;
-    public GetDoctorsQueryHandler(IGenericRepository<Doctor> repository)
+    private readonly IUnitOfWork _unitOfWork;
+
+    public GetDoctorsQueryHandler(IUnitOfWork unitOfWork)
     {
-        _repository = repository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<IEnumerable<DoctorDto>> Handle(
         GetDoctorsQuery request,
         CancellationToken cancellationToken)
     {
-        var doctors = await _repository.GetAllAsync();
+        var doctors = await _unitOfWork.Doctors.GetAllAsync();
 
-        return doctors.Select(d => new DoctorDto(d.DoctorId, d.SpecialtyId, d.FirstName, d.LastName, d.LicenseNumber, d.Phone, d.Email, d.IsActive, d.CreatedAt
-        )).ToList();
+        return doctors.Select(DoctorDto.FromEntity).ToList();
     }
 }

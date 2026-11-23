@@ -1,6 +1,5 @@
 using MediatR;
 using MediFlow.Application.Dtos;
-using MediFlow.Domain.Entities;
 using MediFlow.Domain.Port.Repositories;
 
 namespace MediFlow.Application.UseCases.Doctors.Commands;
@@ -9,15 +8,11 @@ public record CreateDoctorCommand(CreateDoctorDto Dto) : IRequest<int>;
 
 internal sealed class CreateDoctorCommandHandler : IRequestHandler<CreateDoctorCommand, int>
 {
-    private readonly IGenericRepository<Doctor> _doctorRepository;
-    private readonly IGenericRepository<Specialty> _specialtyRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CreateDoctorCommandHandler(
-        IGenericRepository<Doctor> doctorRepository,
-        IGenericRepository<Specialty> specialtyRepository)
+    public CreateDoctorCommandHandler(IUnitOfWork unitOfWork)
     {
-        _doctorRepository = doctorRepository;
-        _specialtyRepository = specialtyRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<int> Handle(
@@ -35,18 +30,35 @@ internal sealed class CreateDoctorCommandHandler : IRequestHandler<CreateDoctorC
             throw new ArgumentException("Todos los datos del médico son obligatorios.");
         }
 
-        var specialty = await _specialtyRepository.GetByIdAsync(dto.SpecialtyId);
+        if (dto.SpecialtyId <= 0)
+        {
+            throw new ArgumentException("El identificador de la especialidad debe ser mayor que cero.");
+        }
+
+        var specialty = await _unitOfWork.Specialties.GetByIdAsync(dto.SpecialtyId);
 
         if (specialty is null || !specialty.IsActive)
         {
             throw new ArgumentException("La especialidad indicada no existe o está inactiva.");
         }
 
+        if (await _unitOfWork.Doctors.ExistsByLicenseNumberAsync(
+                dto.LicenseNumber, cancellationToken: cancellationToken))
+        {
+            throw new ArgumentException("Ya existe un médico con ese número de licencia.");
+        }
+
+        if (await _unitOfWork.Doctors.ExistsByEmailAsync(
+                dto.Email, cancellationToken: cancellationToken))
+        {
+            throw new ArgumentException("Ya existe un médico con ese correo electrónico.");
+        }
+
         var doctor = dto.ToEntity();
 
-        await _doctorRepository.AddAsync(doctor);
+        await _unitOfWork.Doctors.AddAsync(doctor);
+        await _unitOfWork.SaveChangesAsync();
 
         return doctor.DoctorId;
-        
     }
 }

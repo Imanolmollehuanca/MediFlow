@@ -1,6 +1,5 @@
 using MediatR;
 using MediFlow.Application.Dtos;
-using MediFlow.Domain.Entities;
 using MediFlow.Domain.Port.Repositories;
 
 namespace MediFlow.Application.UseCases.Doctors.Queries;
@@ -8,25 +7,28 @@ namespace MediFlow.Application.UseCases.Doctors.Queries;
 public record GetDoctorByIdQuery(int DoctorId)
     : IRequest<DoctorDto?>;
 
-internal sealed class GetDoctorByIdQueryHandler : IRequestHandler<GetDoctorByIdQuery, DoctorDto?>
+internal sealed class GetDoctorByIdQueryHandler
+    : IRequestHandler<GetDoctorByIdQuery, DoctorDto?>
 {
-    private readonly IGenericRepository<Doctor> _repository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetDoctorByIdQueryHandler(
-        IGenericRepository<Doctor> repository)
+    public GetDoctorByIdQueryHandler(IUnitOfWork unitOfWork)
     {
-        _repository = repository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<DoctorDto?> Handle(
         GetDoctorByIdQuery request,
         CancellationToken cancellationToken)
     {
-        var doctor = await _repository.GetByIdAsync(request.DoctorId);
-
-        if (doctor is null)
+        if (request.DoctorId <= 0)
             return null;
 
-        return new DoctorDto(doctor);
+        var doctor = await _unitOfWork.Doctors.GetByIdAsync(
+            request.DoctorId);
+
+        return doctor is null
+            ? null
+            : DoctorDto.FromEntity(doctor);
     }
 }
