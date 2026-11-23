@@ -3,7 +3,6 @@ using MediFlow.Application.Dtos;
 using MediFlow.Application.UseCases.Schedules.Commands;
 using MediFlow.Application.UseCases.Schedules.Queries;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace MediFlow.Controllers;
 
@@ -27,7 +26,8 @@ public class SchedulesController : ControllerBase
     {
         try
         {
-            var schedules = await _mediator.Send(new GetSchedulesQuery(doctorId), cancellationToken);
+            var schedules = await _mediator.Send(
+                new GetSchedulesQuery(doctorId), cancellationToken);
 
             return Ok(schedules);
         }
@@ -39,21 +39,26 @@ public class SchedulesController : ControllerBase
 
     [HttpGet("availability")]
     [EndpointSummary("Consultar turnos disponibles de un médico")]
-    [EndpointDescription("date usa el formato yyyy-MM-dd en UTC. Devuelve turnos completos futuros, " +
-        "descontando citas no canceladas y conflictos de salas. RoomIds contiene las salas activas asignadas; " +
+    [EndpointDescription(
+        "date usa el formato yyyy-MM-dd en UTC. Devuelve turnos completos futuros, " +
+        "descontando citas no canceladas y conflictos de salas. " +
+        "RoomIds contiene las salas activas asignadas; " +
         "puede estar vacío si el médico no tiene sala. La consulta no reserva el turno.")]
     [ProducesResponseType(typeof(IEnumerable<ScheduleAvailabilityDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<IEnumerable<ScheduleAvailabilityDto>>> GetAvailability(
-        [FromQuery, BindRequired] int doctorId,
-        [FromQuery, BindRequired] DateOnly date,
+        [FromQuery] int doctorId,
+        [FromQuery] DateOnly date,
         CancellationToken cancellationToken)
     {
         try
         {
-            var slots = await _mediator.Send(new GetDoctorAvailabilityQuery(doctorId, date), cancellationToken);
+            var slots = await _mediator.Send(
+                new GetDoctorAvailabilityQuery(doctorId, date),
+                cancellationToken);
+
             return Ok(slots);
         }
         catch (Exception ex) when (
@@ -70,7 +75,8 @@ public class SchedulesController : ControllerBase
         int id,
         CancellationToken cancellationToken)
     {
-        var schedule = await _mediator.Send(new GetScheduleByIdQuery(id), cancellationToken);
+        var schedule = await _mediator.Send(
+            new GetScheduleByIdQuery(id), cancellationToken);
 
         if (schedule is null)
             return ScheduleNotFound();
@@ -89,9 +95,13 @@ public class SchedulesController : ControllerBase
     {
         try
         {
-            var schedule = await _mediator.Send(new CreateScheduleCommand(dto), cancellationToken);
+            var schedule = await _mediator.Send(
+                new CreateScheduleCommand(dto), cancellationToken);
 
-            return CreatedAtAction(nameof(GetById), new { id = schedule.ScheduleId }, schedule);
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = schedule.ScheduleId },
+                schedule);
         }
         catch (Exception ex) when (
             ex is ArgumentException or KeyNotFoundException or InvalidOperationException)
@@ -112,7 +122,8 @@ public class SchedulesController : ControllerBase
     {
         try
         {
-            var updated = await _mediator.Send(new UpdateScheduleCommand(id, dto), cancellationToken);
+            var updated = await _mediator.Send(
+                new UpdateScheduleCommand(id, dto), cancellationToken);
 
             if (!updated)
                 return ScheduleNotFound();
@@ -128,12 +139,13 @@ public class SchedulesController : ControllerBase
 
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404BadRequest)]
     public async Task<IActionResult> Delete(
         int id,
         CancellationToken cancellationToken)
     {
-        var deleted = await _mediator.Send(new DeleteScheduleCommand(id), cancellationToken);
+        var deleted = await _mediator.Send(
+            new DeleteScheduleCommand(id), cancellationToken);
 
         if (!deleted)
             return ScheduleNotFound();
@@ -154,6 +166,8 @@ public class SchedulesController : ControllerBase
             _ => StatusCodes.Status409Conflict
         };
 
-        return Problem(title: exception.Message, statusCode: statusCode);
+        return Problem(
+            title: exception.Message,
+            statusCode: statusCode);
     }
 }
