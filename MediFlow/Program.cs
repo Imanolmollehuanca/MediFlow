@@ -13,6 +13,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Registrar controladores
 builder.Services.AddControllers();
 
+// Configurar CORS para el frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("MediFlowCors", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:5173",
+                "https://mediflow-frontend.onrender.com"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 // Registrar repositorios y servicios de Infrastructure
 builder.Services.AddInfrastructureServices();
 
@@ -166,6 +180,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
+
+// Permitir solicitudes del frontend
+app.UseCors("MediFlowCors");
 
 // Primero autenticación, luego autorización
 app.UseAuthentication();
