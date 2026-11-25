@@ -20,7 +20,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "http://localhost:5173",
-                "https://mediflow-frontend.onrender.com"
+                "https://mediflow-frontend-qqsa.onrender.com"
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
