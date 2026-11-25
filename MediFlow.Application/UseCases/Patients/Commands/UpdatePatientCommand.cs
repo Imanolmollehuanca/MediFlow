@@ -1,6 +1,5 @@
 using MediatR;
 using MediFlow.Application.Dtos;
-using MediFlow.Domain.Entities;
 using MediFlow.Domain.Port.Repositories;
 
 namespace MediFlow.Application.UseCases.Patients.Commands;
@@ -13,19 +12,19 @@ public record UpdatePatientCommand(
 internal sealed class UpdatePatientCommandHandler
     : IRequestHandler<UpdatePatientCommand, bool>
 {
-    private readonly IGenericRepository<Patient> _repository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public UpdatePatientCommandHandler(
-        IGenericRepository<Patient> repository)
+    public UpdatePatientCommandHandler(IUnitOfWork unitOfWork)
     {
-        _repository = repository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<bool> Handle(
         UpdatePatientCommand request,
         CancellationToken cancellationToken)
     {
-        var patient = await _repository.GetByIdAsync(request.PatientId);
+        var patient = await _unitOfWork.Patients
+            .GetByIdAsync(request.PatientId);
 
         if (patient is null)
             return false;
@@ -42,7 +41,8 @@ internal sealed class UpdatePatientCommandHandler
         patient.Email = dto.Email;
         patient.Address = dto.Address;
 
-        await _repository.UpdateAsync(patient);
+        await _unitOfWork.Patients.UpdateAsync(patient);
+        await _unitOfWork.SaveChangesAsync();
 
         return true;
     }

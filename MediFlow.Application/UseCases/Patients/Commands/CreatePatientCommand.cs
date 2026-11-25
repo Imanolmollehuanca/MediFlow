@@ -10,12 +10,11 @@ public record CreatePatientCommand(CreatePatientDto Dto) : IRequest<int>;
 internal sealed class CreatePatientCommandHandler
     : IRequestHandler<CreatePatientCommand, int>
 {
-    private readonly IGenericRepository<Patient> _repository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CreatePatientCommandHandler(
-        IGenericRepository<Patient> repository)
+    public CreatePatientCommandHandler(IUnitOfWork unitOfWork)
     {
-        _repository = repository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<int> Handle(
@@ -39,7 +38,8 @@ internal sealed class CreatePatientCommandHandler
             CreatedAt = DateTime.UtcNow
         };
 
-        await _repository.AddAsync(patient);
+        await _unitOfWork.Patients.AddAsync(patient);
+        await _unitOfWork.SaveChangesAsync();
 
         return patient.PatientId;
     }

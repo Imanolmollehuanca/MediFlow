@@ -83,11 +83,20 @@ builder.Services
 builder.Services.AddAuthorization();
 
 // Configurar OpenAPI
-
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, context, cancellationToken) =>
     {
+        // Utilizar una URL relativa para funcionar
+        // correctamente en localhost y Render
+        document.Servers = new List<OpenApiServer>
+        {
+            new OpenApiServer
+            {
+                Url = "/"
+            }
+        };
+
         document.Components ??= new OpenApiComponents();
 
         document.Components.SecuritySchemes ??=
@@ -113,10 +122,9 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
-
 var app = builder.Build();
 
-
+// Manejo global de excepciones
 app.UseExceptionHandler(exceptionApp =>
 {
     exceptionApp.Run(async context =>
@@ -159,8 +167,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// El orden es importante:
-// primero autenticación, luego autorización
+// Primero autenticación, luego autorización
 app.UseAuthentication();
 app.UseAuthorization();
 
